@@ -9,6 +9,9 @@
     "128": "128.png"
   },
   "author": "7633766@gmail.com",
+  "permissions": [
+    "storage"
+  ],
   "content_scripts": [
     {
       "run_at": "document_start",
