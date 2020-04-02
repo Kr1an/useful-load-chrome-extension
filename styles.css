@@ -1,3 +1,59 @@
 * {
   font-family: Rubik;
 }
+.uiw {
+  position: fixed;
+  left: 0;
+  z-index:1000;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: none;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.uic.closing:before {
+  position: absolute;
+  content: '';
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: green;
+  animation: loading 5s linear;
+}
+@keyframes loading {
+  from {width: 0;}
+  to {width: 100%;}
+}
+.uic {
+  pointer-events: auto;
+  overflow: hidden;
+  position: relative;
+  z-index: 1000;
+  border-radius: 5px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  font-size: 20px;
+  transition: 0.1s;
+  cursor: pointer;
+  width: 400px;
+  padding: 20px;
+  background: white;
+}
+.uic:hover {
+  transform: scale(1.01);
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
+.uic:after {
+  content: 'x';
+  position: absolute;
+  top: 0px;
+  right: 7px;
+  opacity: 0;
+  transition: 0.1s;
+}
+.uic:hover:after {
+  opacity: 1;
+}

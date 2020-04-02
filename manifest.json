@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+  "name": "Useful Page Loading",
+  "version": "0.1",
+  "description": "Show interesting facts while page is loading",
+  "icons": {
+    "16": "16.png",
+    "48": "48.png",
+    "128": "128.png"
+  },
+  "author": "7633766@gmail.com",
+  "content_scripts": [
+    {
+      "run_at": "document_start",
+      "js": ["index.js"],
+      "css": ["styles.css"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ]
+}
