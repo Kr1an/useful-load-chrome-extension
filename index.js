@@ -3,7 +3,7 @@ console.log('useful page load: start script')
 const storage = {
   async setObj(key, obj) {
     if (chrome.storage) {
-      await new Promise(res => chrome.storage.sync.set({ [key]: JSON.stringify(obj) }, res))
+      await new Promise(res => chrome.storage.local.set({ [key]: JSON.stringify(obj) }, res))
     } else {
       localStorage.setItem(key, JSON.stringify(obj))
     }
@@ -11,7 +11,7 @@ const storage = {
   async getObj(key) {
     let raw
     if (chrome.storage) {
-      const raws = await new Promise(res => chrome.storage.sync.get([key], res))
+      const raws = await new Promise(res => chrome.storage.local.get([key], res))
       raw = raws[key]
     } else {
       raw = localStorage.getItem(key)
@@ -19,6 +19,14 @@ const storage = {
     if (!raw) return undefined
     return JSON.parse(raw)
   }
+}
+
+const getFilePath = (path) => {
+  let output = path
+  if (chrome && chrome.runtime) {
+    output = chrome.runtime.getURL(path)
+  }
+  return output
 }
 
 async function fetchInfo() {
@@ -30,31 +38,77 @@ async function fetchInfo() {
 setTimeout(fetchInfo, 1000)
 setInterval(fetchInfo, 12 * 1000)
 
-function createInfoElement() {
+function createInfoElement(text) {
+  const liveTimeMs = text.split(' ').length / 2 * 1000
   const wrapper = document.createElement("div")
   wrapper.className = "uiw"
   const container = document.createElement("div")
   container.className = "uic"
-  container.innerText = "Hi. Fetching informaion. Will start showing from the next page update."
+  container.innerText = ''
   wrapper.appendChild(container)
   const removeContainer = () => wrapper.remove()
-  wrapper.onclick = removeContainer
+  const handleInfoClose = async () => {
+    removeContainer()
+    const seen = await storage.getObj('seen') || []
+    if (seen.indexOf(text) < 0) seen.push(text)
+    await storage.setObj('seen', seen)
+  }
+  container.appendChild(document.createElement('p'))
+  wrapper.onclick = handleInfoClose
   window.onload = () => {
     console.log('page loaded')
-    document.querySelector('.uic').classList.add('closing')
-    setTimeout(removeContainer,  5 * 1000)
+    const m = document.querySelector('.uic')
+    const progress = document.createElement('div')
+    const waitBeforeClose = liveTimeMs || 5000
+    console.log('waiting', waitBeforeClose)
+    progress.style.animationDuration = waitBeforeClose + 'ms'
+    progress.className = "progress"
+    m.appendChild(progress)
+    container.addEventListener('mouseenter', () => progress.style.animationPlayState = 'paused')
+    container.addEventListener('mouseleave', () => progress.style.animationPlayState = 'running')
+    progress.addEventListener('animationend', handleInfoClose)
+
+    const rect = document.querySelector('.uic').getBoundingClientRect();
+    if (document.querySelector('.uic:hover')) progress.style.animationPlayState = 'paused'
   }
+  const search = document.createElement('img')
+  search.src = getFilePath("gicon.svg")
+  search.alt="G"
+  search.className = 'search'
+  search.addEventListener('click', (e) => {
+    const url = `https://www.google.com/search?q=${encodeURIComponent(text)}`
+    window.open(url,'_blank');
+    return e.stopImmediatePropagation()
+
+  })
+  container.appendChild(search)
+  
   return wrapper
 }
 
 async function showRandomInfo() {
-  const el = createInfoElement()
+  const info = await storage.getObj('info') || []
+  await storage.setObj('seen', info)
+  const alreadySeen = await storage.getObj('seen') || []
+  let notSeenInfo = info.filter(x => alreadySeen.indexOf(x) < 0)
+
+  if (notSeenInfo.length <= 0) {
+    await storage.setObj('seen', [])
+    notSeenInfo = info
+  }
+
+  let infoToShow
+  if (notSeenInfo.length > 0) {
+    const idxOfInfoToShow = Math.floor(Math.floor(Date.now() / 700) % notSeenInfo.length)
+    infoToShow = info[idxOfInfoToShow]
+  } else {
+    infoToShow = "Hi. Fetching informaion. Will start showing from the next opened page."
+  }
+
+  const el = createInfoElement(infoToShow)
   const body = document.querySelector('html')
   body.appendChild(el)
-  const info = await storage.getObj('info')
-  const randInfo = info[Math.floor(Math.random() * info.length)]
-  if (!randInfo) return
-  document.querySelector('.uic').innerText = randInfo
+  document.querySelector('.uic p').innerText = infoToShow
 }
 async function config() {
   showRandomInfo()

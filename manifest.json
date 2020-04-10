@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Useful Page Loading",
-  "version": "0.1",
+  "version": "0.2",
   "description": "Show interesting facts while page is loading",
   "icons": {
     "16": "16.png",
@@ -17,7 +17,10 @@
       "run_at": "document_start",
       "js": ["index.js"],
       "css": ["styles.css"],
-      "matches": ["http://*/*", "https://*/*"]
+      "matches": ["<all_urls>"]
     }
+  ],
+  "web_accessible_resources": [
+    "gicon.svg"
   ]
 }
