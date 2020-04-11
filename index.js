@@ -72,7 +72,7 @@ function createInfoElement(text) {
     if (document.querySelector('.uic:hover')) progress.style.animationPlayState = 'paused'
   }
   const search = document.createElement('img')
-  search.src = getFilePath("gicon.svg")
+  search.src = getFilePath("imgs/gicon.svg")
   search.alt="G"
   search.className = 'search'
   search.addEventListener('click', (e) => {

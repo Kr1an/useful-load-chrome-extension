@@ -4,13 +4,14 @@
   "version": "0.2",
   "description": "Show interesting facts while page is loading",
   "icons": {
-    "16": "16.png",
-    "48": "48.png",
-    "128": "128.png"
+    "16": "imgs/icon_16x16.png",
+    "48": "imgs/icon_48x48.png",
+    "128": "imgs/icon_128x128.png"
   },
   "author": "7633766@gmail.com",
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab"
   ],
   "content_scripts": [
     {
@@ -21,6 +22,6 @@
     }
   ],
   "web_accessible_resources": [
-    "gicon.svg"
+    "imgs/gicon.svg"
   ]
 }
