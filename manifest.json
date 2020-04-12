@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Useful Page Loading",
   "version": "0.3",
-  "description": "Learn new language or fun fact while page is loading",
+  "description": "Learn a new language or a fun fact while page is loading",
   "icons": {
     "16": "imgs/icon_16x16.png",
     "48": "imgs/icon_48x48.png",
