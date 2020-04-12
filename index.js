@@ -1,5 +1,8 @@
-console.log('useful page load: start script')
-
+/*
+ * Storage that abstracts dev/prod environemnt.
+ * It uses chrome.storage on prod side and
+ * localstorage on dev side
+ */
 const storage = {
   async setObj(key, obj) {
     if (chrome.storage) {
@@ -21,100 +24,207 @@ const storage = {
   }
 }
 
+/*
+ * It abstracts search filepath for src and other properties.
+ * Dev/prod has different prefixes.
+ */
 const getFilePath = (path) => {
   let output = path
-  if (chrome && chrome.runtime) {
+  if (chrome && chrome.runtime && chrome.runtime.getURL) {
     output = chrome.runtime.getURL(path)
   }
   return output
 }
 
-async function fetchInfo() {
-  const infoFetchUrl = "https://raw.githubusercontent.com/Kr1an/useful-load-info/master/main.json"
+/*
+ * Fetches topics and info from remote server.
+ * Maybe its good idea to abstract base url with
+ * some kind of settings.
+ */
+const fetchBaseUrl = "https://raw.githubusercontent.com/Kr1an/useful-load-info/master/"
+async function fetchTopics() {
+  const infoFetchUrl = fetchBaseUrl + 'topics.json'
   const data = await fetch(infoFetchUrl).then(res => res.json())
-  await storage.setObj('info', data)
+  return data
+}
+async function fetchInfo(topicPath) {
+  if (!topicPath) throw new Error('topicPath expected')
+  const infoFetchUrl = fetchBaseUrl + topicPath
+  const data = await fetch(infoFetchUrl).then(res => res.json())
+  return data
 }
 
-setTimeout(fetchInfo, 1000)
-setInterval(fetchInfo, 12 * 1000)
-
-function createInfoElement(text) {
-  const liveTimeMs = text.split(' ').length / 2 * 1000
-  const wrapper = document.createElement("div")
-  wrapper.className = "uiw"
-  const container = document.createElement("div")
-  container.className = "uic"
-  container.innerText = ''
-  wrapper.appendChild(container)
-  const removeContainer = () => wrapper.remove()
-  const handleInfoClose = async () => {
-    removeContainer()
-    const seen = await storage.getObj('seen') || []
-    if (seen.indexOf(text) < 0) seen.push(text)
-    await storage.setObj('seen', seen)
-  }
-  container.appendChild(document.createElement('p'))
-  wrapper.onclick = handleInfoClose
-  window.onload = () => {
-    console.log('page loaded')
-    const m = document.querySelector('.uic')
-    const progress = document.createElement('div')
-    const waitBeforeClose = liveTimeMs || 5000
-    console.log('waiting', waitBeforeClose)
-    progress.style.animationDuration = waitBeforeClose + 'ms'
-    progress.className = "progress"
-    m.appendChild(progress)
-    container.addEventListener('mouseenter', () => progress.style.animationPlayState = 'paused')
-    container.addEventListener('mouseleave', () => progress.style.animationPlayState = 'running')
-    progress.addEventListener('animationend', handleInfoClose)
-
-    const rect = document.querySelector('.uic').getBoundingClientRect();
-    if (document.querySelector('.uic:hover')) progress.style.animationPlayState = 'paused'
-  }
-  const search = document.createElement('img')
-  search.src = getFilePath("imgs/gicon.svg")
-  search.alt="G"
-  search.className = 'search'
-  search.addEventListener('click', (e) => {
-    const url = `https://www.google.com/search?q=${encodeURIComponent(text)}`
-    window.open(url,'_blank');
-    return e.stopImmediatePropagation()
-
-  })
-  container.appendChild(search)
-  
-  return wrapper
-}
-
-async function showRandomInfo() {
-  const info = await storage.getObj('info') || []
-  await storage.setObj('seen', info)
-  const alreadySeen = await storage.getObj('seen') || []
-  let notSeenInfo = info.filter(x => alreadySeen.indexOf(x) < 0)
-
-  if (notSeenInfo.length <= 0) {
+/*
+ * It abstracts storage operations for application
+ * related logic state. It also abstracts cache related
+ * logic
+ */
+const state = {
+  async getTopics() {
+    await this.syncTopics()
+    const topics = await storage.getObj('topics')
+    return topics
+  },
+  async getInfo() {
+    await this.syncInfo()
+    const info = await storage.getObj('info')
+    return info
+  },
+  async syncInfo(force) {
+    const currentTopic = await this.getCurrentTopic()
+    const lastSyncMs = (await storage.getObj('lastInfoSyncTimeMs') || 0)
+    if (!force && Date.now() - lastSyncMs < 60 * 1000) return
+    const topicMap = await this.getTopics()
+    const info = await fetchInfo(topicMap[currentTopic])
+    await storage.setObj('info', info)
+    await storage.setObj('lastInfoSyncTimeMs', Date.now())
+  },
+  async syncTopics(force) {
+    const lastSyncMs = (await storage.getObj('lastTopicsSyncTimeMs') || 0)
+    if (!force && Date.now() - lastSyncMs < 60 * 1000) return
+    const topicMap = await fetchTopics()
+    await storage.setObj('topics', topicMap)
+    await storage.setObj('lastTopicsSyncTimeMs', Date.now())
+  },
+  async getCurrentTopic() {
+    const topic = await storage.getObj('currentTopic')
+    if (topic) return topic
+    const topicMap = await this.getTopics()
+    const topics = Object.keys(topicMap)
+    if (!topics.length) throw new Error('no topics found')
+    return topics[0]
+  },
+  async setCurrentTopic(topic) {
+    const topics = await this.getTopics()
+    if (!topics[topic]) throw new Error('topic not exist')
+    await storage.setObj('currentTopic', topic)
+    await this.syncInfo(true)
+  },
+  async resetSeen() {
     await storage.setObj('seen', [])
-    notSeenInfo = info
-  }
-
-  let infoToShow
-  if (notSeenInfo.length > 0) {
-    const idxOfInfoToShow = Math.floor(Math.floor(Date.now() / 700) % notSeenInfo.length)
-    infoToShow = info[idxOfInfoToShow]
-  } else {
-    infoToShow = "Hi. Fetching informaion. Will start showing from the next opened page."
-  }
-
-  const el = createInfoElement(infoToShow)
-  const body = document.querySelector('html')
-  body.appendChild(el)
-  document.querySelector('.uic p').innerText = infoToShow
+  },
+  async getSeen() {
+    return await storage.getObj('seen') || []
+  },
+  async pushSeen(msg) {
+    const seen = await this.getSeen()
+    if (seen.indexOf(msg) < 0) seen.push(msg)
+    await storage.setObj('seen', seen)
+  },
 }
+
+
+/*
+ * Rerenders root to be setting screen
+ */
+async function renderSettings() {
+  const oldRoot = document.querySelector('#useful-load-root')
+  if (oldRoot) oldRoot.remove()
+  const newRoot = document.createElement('div')
+  document.querySelector('body').appendChild(newRoot)
+  newRoot.id = 'useful-load-root'
+  newRoot.innerHTML = `
+    <div class="float-modal settings" tabindex="0">
+      <p>Loading settings...</p>
+    </div>
+  `
+  const topicMap = await state.getTopics()
+  const currentTopic = await state.getCurrentTopic()
+  newRoot.querySelector('.float-modal').innerHTML = `
+    <h3>Select topic</h3>
+    <div class="topics"></div>
+    <div class="separator-line"></div>
+    <p class="extra-info">Have any thoughts about the extension<b>?</b><br/> Please, send me an email <b>7633766@gmail.com</b>
+  `
+  const topics = Object.keys(topicMap)
+  const topicsContainer = newRoot.querySelector('.topics')
+  for (let i = 0; i < topics.length; i++) {
+    const topicEl = document.createElement('p')
+    if (currentTopic === topics[i]) topicEl.className = 'current-topic'
+    topicEl.innerText = topics[i]
+    topicEl.addEventListener('click', async () => {
+      await state.setCurrentTopic(topics[i])
+      renderSettings()
+    })
+    topicsContainer.appendChild(topicEl)
+  }
+  const modal = newRoot.querySelector('.float-modal')
+  modal.focus()
+  modal.addEventListener('blur', () => {
+    setTimeout(() => newRoot.remove(), 100)
+  })
+}
+
+/*
+ * It renders info related screen
+ */
+async function renderInfo() {
+  const oldRoot = document.querySelector('#useful-load-root')
+  if (oldRoot) oldRoot.remove()
+  const newRoot = document.createElement('div')
+  document.querySelector('html').appendChild(newRoot)
+  newRoot.id = 'useful-load-root'
+  newRoot.innerHTML = `
+    <div class="float-modal">
+      <p>Loading...</p>
+    </div>
+  `
+  const info = await state.getInfo()
+  const seen = await state.getSeen()
+  const notYetSeenInfo = info.filter(x => seen.indexOf(x) < 0)
+  if (!notYetSeenInfo.length) {
+    await state.resetSeen()
+    return renderInfo()
+  }
+  const idxOfTheMsgToShow = Math.floor(Math.floor(Date.now() / 700) % notYetSeenInfo.length)
+  const msgToShow = info[idxOfTheMsgToShow]
+  newRoot.innerHTML = `
+    <div class="float-modal">
+      <p></p>
+      <div class="progress"></div>
+      <img class="search" src="${getFilePath("imgs/gicon.svg")}" />
+      <div class="settings-link-wrapper">
+        <div class="settings-link">...</div>
+      </div>
+    </div>
+  `
+  newRoot.querySelector('.float-modal p').innerText = msgToShow
+  newRoot.querySelector('.search').addEventListener('click', (e) => {
+    const url = `https://www.google.com/search?q=${encodeURIComponent(msgToShow)}`
+    window.open(url, '_blank')
+    return e.stopImmediatePropagation()
+  })
+  const handleInfoClose = () => {
+    newRoot.remove()
+    state.pushSeen(msgToShow)
+  }
+  const progress = newRoot.querySelector('.progress')
+  const waitBeforeCloseMs = 5 * 1000
+  progress.style.animationDuration = waitBeforeCloseMs + 'ms'
+
+  const modal = newRoot.querySelector('.float-modal')
+  modal.addEventListener('mouseenter', () => {
+    progress.style.animationPlayState = 'paused'
+  })
+  modal.addEventListener('mouseleave', () => {
+    progress.style.animationPlayState = 'running'
+  })
+  modal.addEventListener('click', () => {
+    setTimeout(() => newRoot.remove(), 100)
+  })
+  progress.addEventListener('animationend', handleInfoClose)
+
+  newRoot.querySelector('.settings-link').addEventListener('click', (e) => {
+    e.stopImmediatePropagation()
+    renderSettings()
+  })
+
+  if (newRoot.querySelector('.float-modal:hover'))
+    progress.style.animationPlayState = 'paused'
+  
+}
+
 async function config() {
-  showRandomInfo()
-  const info = await storage.getObj('info')
-  if (!info) fetchInfo()
+  await renderInfo()
 }
-config()
-
-
+window.onload = config

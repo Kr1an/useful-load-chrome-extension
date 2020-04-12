@@ -172,6 +172,9 @@
   flex-wrap: wrap;
   padding-bottom: 20px;
 }
+#useful-load-root .float-modal.settings {
+  box-shadow: 0 0 15px rgb(var(--shadow-color));
+}
 
 #useful-load-root .float-modal.settings h3 {
   font-family: var(--primary-font-family)!important;
