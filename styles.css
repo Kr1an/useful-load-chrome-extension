@@ -202,10 +202,13 @@
 }
 
 #useful-load-root .float-modal.settings .topics p {
-  margin-right: 15px;
   cursor: pointer;
   pointer-events: auto;
-  margin-bottom: 3px;
+  padding-left: 3px;
+  padding-top: 5px;
+  padding-right: 3px;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 #useful-load-root .float-modal.settings .topics p.current-topic {
