@@ -169,7 +169,6 @@ async function renderInfo() {
       <p>Loading...</p>
     </div>
   `
-  debugger
   const info = await state.getInfo()
   const seen = await state.getSeen()
   const notYetSeenInfo = info.filter(x => seen.indexOf(x) < 0)
