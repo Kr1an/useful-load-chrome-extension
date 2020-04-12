@@ -227,4 +227,4 @@ async function renderInfo() {
 async function config() {
   await renderInfo()
 }
-window.onload = config
+config()

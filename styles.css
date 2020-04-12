@@ -178,6 +178,7 @@
 
 #useful-load-root .float-modal.settings h3 {
   font-family: var(--primary-font-family)!important;
+  font-weight: bold;
   color: rgb(var(--secondary-color))!important;
   margin: 0;
   margin-left: 20px;
