@@ -70,18 +70,18 @@ const state = {
     const info = await storage.getObj('info')
     return info
   },
-  async syncInfo(force) {
+  async syncInfo(force = false) {
     const currentTopic = await this.getCurrentTopic()
     const lastSyncMs = (await storage.getObj('lastInfoSyncTimeMs') || 0)
-    if (!force && Date.now() - lastSyncMs < 60 * 1000) return
+    if (!force && Date.now() - lastSyncMs < 3 * 60 * 1000) return
     const topicMap = await this.getTopics()
     const info = await fetchInfo(topicMap[currentTopic])
     await storage.setObj('info', info)
     await storage.setObj('lastInfoSyncTimeMs', Date.now())
   },
-  async syncTopics(force) {
+  async syncTopics(force = false) {
     const lastSyncMs = (await storage.getObj('lastTopicsSyncTimeMs') || 0)
-    if (!force && Date.now() - lastSyncMs < 60 * 1000) return
+    if (!force && Date.now() - lastSyncMs < 2 * 60 * 1000) return
     const topicMap = await fetchTopics()
     await storage.setObj('topics', topicMap)
     await storage.setObj('lastTopicsSyncTimeMs', Date.now())
