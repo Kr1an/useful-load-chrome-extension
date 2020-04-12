@@ -201,7 +201,6 @@ async function renderInfo() {
   const progress = newRoot.querySelector('.progress')
   const waitBeforeCloseMs = 5 * 1000
   progress.style.animationDuration = waitBeforeCloseMs + 'ms'
-
   const modal = newRoot.querySelector('.float-modal')
   modal.addEventListener('mouseenter', () => {
     progress.style.animationPlayState = 'paused'
