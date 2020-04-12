@@ -1,7 +1,25 @@
-.uiw {
+/**
+ * Global vars. Contains configurable
+ * list of variables used by the app.
+ */
+:root {
+  --primary-font-family: Rubik;
+  --normal-text-font-size: 22px;
+  --primary-color: 255,159,1;
+  --secondary-color: 234,120,132;
+  --font-color: 0,0,0;
+  --bg-color: 255,255,255;
+  --shadow-color: 210,210,210;
+}
+/**
+ * #useful-load-root is the element that contains
+ * every other element of the extension. To paraphrase
+ * it is the root of the application.
+ */
+#useful-load-root {
   position: fixed;
   left: 0;
-  z-index:1000;
+  z-index: 1000;
   right: 0;
   top: 0;
   bottom: 0;
@@ -11,58 +29,84 @@
   align-items: flex-end;
   pointer-events: none;
 }
+#useful-load-root>* {
+  pointer-events: auto;
+}
 
-.uic .progress {
+/**
+ * .float-modal is the element in form of
+ * floating window that contains part
+ * of the extension that user sees.
+ */
+
+#useful-load-root .float-modal {
+  position: relative;
+  border-radius: 5px 5px 0 0;
+  box-shadow: 0 0 15px rgba(var(--shadow-color), 0.5);
+  transition: 0.1s;
+  cursor: default;
+  width: 400px;
+  padding: 20px;
+  padding-bottom: 30px;
+  background: rgb(var(--bg-color));
+  outline: none;
+}
+
+#useful-load-root .float-modal:hover {
+  box-shadow: 0 0 15px rgb(var(--shadow-color));
+}
+
+#useful-load-root .float-modal p {
+  font-family: var(--primary-font-family)!important;
+  font-size: var(--normal-text-font-size)!important;
+  position: relative;
+  pointer-events: none;
+  z-index: 10; 
+  margin: 0;
+}
+
+/**
+ * .float-modal progress feature
+ */
+#useful-load-root .float-modal .progress {
   position: absolute;
   content: '';
   top: -3px;
   left: 0;
-  width: 0%;
+  width: 5%;
   bottom: 0;
   z-index: -1;
-  transition: 0.01s;
-  background: green;
-  animation-name: loading;
+  transition: 0.1s;
+  background: rgb(var(--primary-color));
+  animation-name: progress-bar-fills;
   animation-timing-function: linear;
   border-radius: 6px;
 }
-.uic .progress-back {
-  position: absolute;
-  background: pink;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+#useful-load-root .float-modal:hover .progress {
+  filter: opacity(0.3);
 }
 
-.uic:hover .progress {
-  background: #c1d5c1;
-}
-@keyframes loading {
-  0% {opacity: 0;width: 5%;}
-  2% {opacity: 1}
-  98% {opacity: 1;}
+@keyframes progress-bar-fills {
+  0% {
+    opacity: 0;
+    width: 5%;
+  }
+  2% {
+    opacity: 1;
+  }
+  98% {
+    opacity: 1;
+  }
   100% {
     width: 100%;
     opacity: 0;
   }
 }
-.uic {
-  pointer-events: auto;
-  position: relative;
-  border-radius: 5px 5px 0 0;
-  box-shadow: 0 0 20px rgba(0,0,0,0.05);
-  transition: 0.1s;
-  cursor: pointer;
-  width: 400px;
-  padding: 20px;
-  background: white;
-}
-.uic:hover {
-  box-shadow: 0 0 20px rgba(0,0,0,0.2);
-}
-.uic .search {
+
+/**
+ * float-modal seach feature
+ */
+#useful-load-root .float-modal .search {
   opacity: 0;
   display: inline;
   position: absolute;
@@ -73,37 +117,102 @@
   height: 45px;
   padding: 8px;
   z-index: 90;
-  transition: opacity 0.3s, transform 0.3s;
+  transition: opacity 0.3s;
   cursor: help;
 }
-.uic:hover .search {
+#useful-load-root .float-modal:hover .search {
   opacity: 0.5;
+  z-index: 0;
   transition: opacity 0.1s;
 }
-.uic .search:hover {
-  transform: scale(1.00);
+#useful-load-root .float-modal .search:hover {
   opacity: 1;
-  z-index: 101;
-  filter: drop-shadow(0 0 4px rgba(0,0,0,0.2));
-  transition: opacity 0.1s, transform 0.3s;
+  z-index: 20;
+  filter: drop-shadow(0 0 4px rgb(var(--shadow-color)));
+  transition: opacity 0.1s;
 }
-.uic p {
-  font-family: Rubik!important;
-  font-size: 20px!important;
-  position: relative;
+/**
+ * float-modal settings-link feature
+ */
+#useful-load-root .float-modal .settings-link-wrapper {
   pointer-events: none;
-  padding: 0;
-  margin: 0;
-  z-index: 100;
-}
-.uic:after {
-  content: '';
+  display: flex;
   position: absolute;
-  top: 0px;
-  right: 7px;
-  opacity: 0;
-  transition: 0.1s;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  justify-content:center;
+  align-items: flex-end;
 }
-.uic:hover:after {
+#useful-load-root .float-modal .settings-link-wrapper>* {
+  pointer-events: auto;
+}
+#useful-load-root .float-modal .settings-link-wrapper .settings-link {
+  font-size: 40px;
+  font-family: monospace;
+  letter-spacing: -13px;
+  cursor: pointer;
+  opacity: 0.2;
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+#useful-load-root .float-modal .settings-link-wrapper .settings-link:hover {
   opacity: 1;
+  transition: 0.2s;
 }
+
+/**
+ * float-modal settings screen feature
+ */
+
+#useful-load-root .float-modal.settings .topics {
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+}
+
+#useful-load-root .float-modal.settings h3 {
+  font-family: var(--primary-font-family)!important;
+  color: rgb(var(--secondary-color))!important;
+  margin: 0;
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+
+
+#useful-load-root .float-modal.settings p.extra-info {
+  font-style: italic;
+  color: rgba(var(--font-color), 0.3);
+  font-size: calc(var(--normal-text-font-size)px * 0.8)!important;
+  text-align: center;
+}
+#useful-load-root .float-modal.settings p.extra-info b {
+  color: rgba(var(--font-color), 0.8);
+}
+
+#useful-load-root .float-modal .separator-line {
+  height: 2px;
+  width: 200px;
+  background: rgba(var(--secondary-color), 0.4)!important;
+  position: relative;
+  left: 100px;
+  margin-bottom: 15px;
+}
+
+#useful-load-root .float-modal.settings .topics p {
+  margin-right: 15px;
+  cursor: pointer;
+  pointer-events: auto;
+  margin-bottom: 3px;
+}
+
+#useful-load-root .float-modal.settings .topics p.current-topic {
+  box-shadow: inset 0 -10px rgb(var(--primary-color));
+  font-weight: bold;
+}
+#useful-load-root .float-modal.settings .topics p:hover {
+  box-shadow: inset 0 -10px rgba(var(--primary-color), 0.5);
+}
+
