@@ -1,4 +1,4 @@
-###Useful Load chrome extension
+### Useful Load chrome extension
 
 Info is fetched from [https://github.com/Kr1an/useful-load-info](useful-load-info)
 
