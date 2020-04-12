@@ -169,6 +169,7 @@ async function renderInfo() {
       <p>Loading...</p>
     </div>
   `
+  debugger
   const info = await state.getInfo()
   const seen = await state.getSeen()
   const notYetSeenInfo = info.filter(x => seen.indexOf(x) < 0)
@@ -177,7 +178,7 @@ async function renderInfo() {
     return renderInfo()
   }
   const idxOfTheMsgToShow = Math.floor(Math.floor(Date.now() / 700) % notYetSeenInfo.length)
-  const msgToShow = info[idxOfTheMsgToShow]
+  const msgToShow = notYetSeenInfo[idxOfTheMsgToShow]
   newRoot.innerHTML = `
     <div class="float-modal">
       <p></p>
@@ -209,7 +210,7 @@ async function renderInfo() {
     progress.style.animationPlayState = 'running'
   })
   modal.addEventListener('click', () => {
-    setTimeout(() => newRoot.remove(), 100)
+    setTimeout(handleInfoClose, 100)
   })
   progress.addEventListener('animationend', handleInfoClose)
 
