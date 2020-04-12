@@ -22,6 +22,8 @@
     }
   ],
   "web_accessible_resources": [
-    "imgs/gicon.svg"
+    "imgs/gicon.svg",
+    "imgs/more.svg",
+    "imgs/settings.svg"
   ]
 }
