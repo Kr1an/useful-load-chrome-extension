@@ -88,8 +88,8 @@ const state = {
   },
   async getCurrentTopic() {
     const topic = await storage.getObj('currentTopic')
-    if (topic) return topic
     const topicMap = await this.getTopics()
+    if (topic && topicMap[topic]) return topic
     const topics = Object.keys(topicMap)
     if (!topics.length) throw new Error('no topics found')
     return topics[0]
