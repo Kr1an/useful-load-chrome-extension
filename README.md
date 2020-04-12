@@ -1,5 +1,6 @@
-goals for minimal version till todays 9am?
-- fetch structure data from githubpages
-- show random data each page load
-- contains of single fixed component
-- chrome extension
+###Useful Load chrome extension
+
+Info is fetched from [https://github.com/Kr1an/useful-load-info](useful-load-info)
+
+![](./imgs/1_1280x800.png)
+![](./imgs/3_1280x800.png)
